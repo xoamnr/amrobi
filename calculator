@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Economics Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        label { display: block; margin: 10px 0 5px; }
+        input[type="number"], input[type="text"] { width: 100%; padding: 8px; }
+        button { padding: 10px 15px; background-color: #28a745; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Driver Economics Calculator</h1>
+    <form id="calculatorForm">
+        <label for="zipCode">ZIP Code:</label>
+        <input type="text" id="zipCode" placeholder="Enter your ZIP code" required>
+        
+        <label for="vehiclePayments">Monthly Vehicle Payments:</label>
+        <input type="number" id="vehiclePayments" placeholder="Enter amount" required>
+        
+        <label for="insurancePayments">Monthly Insurance Payments:</label>
+        <input type="number" id="insurancePayments" placeholder="Enter amount" required>
+        
+        <label for="weeklyMiles">Weekly Miles Driven:</label>
+        <input type="number" id="weeklyMiles" placeholder="Enter miles" required>
+        
+        <label for="milesUber">Miles Driven on Uber:</label>
+        <input type="number" id="milesUber" placeholder="Enter miles" required>
+        
+        <label for="termLength">Term Length (Months):</label>
+        <input type="number" id="termLength" placeholder="Enter term length in months" required>
+        
+        <button type="button" onclick="calculate()">Calculate</button>
+    </form>
+    <div id="results"></div>
+
+    <script>
+        const zipCodeGasPrices = {
+            "10001": 0.2,
+            "20001": 0.25,
+            "30301": 0.22,
+            "60601": 0.21,
+            "94101": 0.19
+        };
+
+        // Drive-to-Own scenario parameters
+        const driveToOwn = {
+            monthly_payments: 500,
+            insurance_payments: 75,
+            gasoline_expense_per_mile: 0.15,
+            weekly_miles: 1000,
+            term_length: 36
+        };
+
+        function calculate() {
+            const zipCode = document.getElementById('zipCode').value;
+            const vehiclePayments = parseFloat(document.getElementById('vehiclePayments').value);
+            const insurancePayments = parseFloat(document.getElementById('insurancePayments').value);
+            const weeklyMiles = parseFloat(document.getElementById('weeklyMiles').value);
+            const milesUber = parseFloat(document.getElementById('milesUber').value);
+            const termLength = parseFloat(document.getElementById('termLength').value); 
+            
+            // Get gas price based on ZIP code
+            const gasolineExpense = zipCodeGasPrices[zipCode] || 0; 
+            
+            // Calculate total costs for user input
+            const totalPayments = vehiclePayments + insurancePayments;
+            const totalGasoline = gasolineExpense * milesUber;
+            const totalMonthlyCost = totalPayments + totalGasoline;
+            const totalTermCost = totalMonthlyCost * termLength; 
+            
+            // Calculate total costs for Drive-to-Own scenario
+            const driveToOwnTotalPayments = driveToOwn.monthly_payments + driveToOwn.insurance_payments;
+            const driveToOwnTotalGasoline = driveToOwn.gasoline_expense_per_mile * driveToOwn.weekly_miles;
+            const driveToOwnTotalMonthlyCost = driveToOwnTotalPayments + driveToOwnTotalGasoline;
+            const driveToOwnTotalTermCost = driveToOwnTotalMonthlyCost * driveToOwn.term_length;
+
+            // Calculate differences
+            const differenceMonthly = totalMonthlyCost - driveToOwnTotalMonthlyCost;
+            const differenceTotal = totalTermCost - driveToOwnTotalTermCost;
+
+            document.getElementById('results').innerHTML = `
+                <h2>Results:</h2>
+                <p>Total Monthly Payments: $${totalPayments.toFixed(2)}</p>
+                <p>Gasoline Expense per Mile: $${gasolineExpense.toFixed(2)}</p>
+                <p>Total Gasoline Cost for Uber: $${totalGasoline.toFixed(2)}</p>
+                <p>Total Monthly Cost: $${totalMonthlyCost.toFixed(2)}</p>
+                <p>Total Cost over ${termLength} Months: $${totalTermCost.toFixed(2)}</p>
+                <h3>Drive-to-Own Comparison:</h3>
+                <p>Drive-to-Own Total Monthly Cost: $${driveToOwnTotalMonthlyCost.toFixed(2)}</p>
+                <p>Drive-to-Own Total Cost over ${driveToOwn.term_length} Months: $${driveToOwnTotalTermCost.toFixed(2)}</p>
+                <p>Difference in Monthly Cost: $${differenceMonthly.toFixed(2)}</p>
+                <p>Difference in Total Cost: $${differenceTotal.toFixed(2)}</p>
+            `;
+        }
+    </script>
+</body>
+</html>
