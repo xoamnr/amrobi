@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Economics Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        label { display: block; margin: 10px 0 5px; }
+        select, input[type="number"] { width: 100%; padding: 8px; }
+        button { padding: 10px 15px; background-color: #28a745; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        #results { margin-top: 20px; }
+        img { margin-top: 20px; max-width: 100%; height: auto; }
+    </style>
+</head>
+<body>
+    <h1>Driver Economics Calculator</h1>
+    <form id="calculatorForm">
+        <label for="zipCode">ZIP Code:</label>
+        <select id="zipCode" required onchange="updateGasPrice()">
+            <option value="" disabled selected>Select your ZIP code</option>
+            <option value="19145">19145</option>
+            <option value="32003">32003</option>
+            <option value="90211">90211</option>
+            <option value="20001">20001</option>
+        </select>
+        
+        <label for="vehiclePayments">Monthly Vehicle Payments:</label>
+        <select id="vehiclePayments" required onchange="calculate()">
+            <option value="" disabled selected>Select payment amount</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+            <option value="300">300</option>
+            <option value="400">400</option>
+            <option value="500">500</option>
+            <option value="600">600</option>
+        </select>
+        
+        <label for="insurancePayments">Monthly Insurance Payments:</label>
+        <select id="insurancePayments" required onchange="calculate()">
+            <option value="" disabled selected>Select insurance amount</option>
+            <option value="50">50</option>
+            <option value="75">75</option>
+            <option value="100">100</option>
+            <option value="125">125</option>
+            <option value="150">150</option>
+        </select>
+        
+        <label for="weeklyMiles">Weekly Miles Driven:</label>
+        <select id="weeklyMiles" required onchange="calculate()">
+            <option value="" disabled selected>Select weekly miles</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+            <option value="300">300</option>
+            <option value="400">400</option>
+            <option value="500">500</option>
+        </select>
+        
+        <label for="milesUber">Miles Driven on Uber:</label>
+        <select id="milesUber" required onchange="calculate()">
+            <option value="" disabled selected>Select Uber miles</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+            <option value="150">150</option>
+            <option value="200">200</option>
+            <option value="250">250</option>
+        </select>
+        
+        <label for="termLength">Term Length (Months):</label>
+        <select id="termLength" required onchange="calculate()">
+            <option value="" disabled selected>Select term length</option>
+            <option value="12">12</option>
+            <option value="24">24</option>
+            <option value="36">36</option>
+            <option value="48">48</option>
+            <option value="60">60</option>
+        </select>
+        
+        <button type="button" onclick="calculate()">Calculate</button>
+    </form>
+    <div id="results"></div>
+    <img id="comparisonGraph" src="" alt="Monthly Cost Comparison" style="display:none;">
+
+    <script>
+        const zipCodeGasPrices = {
+            "19145": 3.50, // Example prices
+            "32003": 3.60,
+            "90211": 3.55,
+            "20001": 3.45
+        };
+
+        let currentGasPrice = 0; // Variable to store current gas price
+
+        // Drive-to-Own scenario parameters
+        const driveToOwn = {
+            monthly_payments: 500,
+            insurance_payments: 75,
+            gasoline_expense_per_mile: 0.15,
+            weekly_miles: 1000,
+            term_length: 36
+        };
+
+        function updateGasPrice() {
+            const zipCode = document.getElementById('zipCode').value;
+            currentGasPrice = zipCodeGasPrices[zipCode] || 0; // Update gas price based on ZIP code
+
+            // Display the current gas price
+            document.getElementById('results').innerHTML = `<p>Current Gas Price: $${currentGasPrice.toFixed(2)}</p>`; 
+            calculate(); // Recalculate costs with the new gas price
+        }
+
+        function calculate() {
+            const vehiclePayments = parseFloat(document.getElementById('vehiclePayments').value) || 0;
+            const insurancePayments = parseFloat(document.getElementById('insurancePayments').value) || 0;
+            const weeklyMiles = parseFloat(document.getElementById('weeklyMiles').value) || 0;
+            const milesUber = parseFloat(document.getElementById('milesUber').value) || 0;
+            const termLength = parseFloat(document.getElementById('termLength').value) || 0; 
+            
+            // Calculate total costs for user input
+            const totalPayments = vehiclePayments + insurancePayments;
+            const totalGasoline = currentGasPrice * milesUber; // Updated to use current gas price
+            const totalMonthlyCost = totalPayments + totalGasoline;
+            const totalTermCost = totalMonthlyCost * termLength; 
+            
+            // Calculate total costs for Drive-to-Own scenario
+            const driveToOwnTotalPayments = driveToOwn.monthly_payments + driveToOwn.insurance_payments;
+            const driveToOwnTotalGasoline = driveToOwn.gasoline_expense_per_mile * driveToOwn.weekly_miles;
+            const driveToOwnTotalMonthlyCost = driveToOwnTotalPayments + driveToOwnTotalGasoline;
+            const driveToOwnTotalTermCost = driveToOwnTotalMonthlyCost * driveToOwn.term_length;
+
+            // Calculate differences
+            const differenceMonthly = totalMonthlyCost - driveToOwnTotalMonthlyCost;
+            const differenceTotal = totalTermCost - driveToOwnTotalTermCost;
+
+            // Clear previous results and display the new results
+            document.getElementById('results').innerHTML = `
+                <h2>Results:</h2>
+                <p>Total Monthly Payments: $${totalPayments.toFixed(2)}</p>
+                <p>Total Gasoline Cost for Uber: $${totalGasoline.toFixed(2)}</p>
+                <p>Total Monthly Cost: $${totalMonthlyCost.toFixed(2)}</p>
+                <p>Total Cost over ${termLength} Months: $${totalTermCost.toFixed(2)}</p>
+                <h3>Drive-to-Own Comparison:</h3>
+                <p>Drive-to-Own Total Monthly Cost: $${driveToOwnTotalMonthlyCost.toFixed(2)}</p>
+                <p>Drive-to-Own Total Cost over ${driveToOwn.term_length} Months: $${driveToOwnTotalTermCost.toFixed(2)}</p>
+                <p>Difference in Monthly Cost: $${differenceMonthly.toFixed(2)}</p>
+                <p>Difference in Total Cost: $${differenceTotal.toFixed(2)}</p>
+            `;
+
+            // Update the graph image source
+            document.getElementById('comparisonGraph').src = 'monthly_cost_comparison.png';
+            document.getElementById('comparisonGraph').style.display = 'block'; // Show the graph
+        }
+    </script>
+</body>
+</html>
